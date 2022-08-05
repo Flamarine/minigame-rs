@@ -1,6 +1,7 @@
 use std::io::stdin;
 use rand::Rng;
 use rand::rngs::ThreadRng;
+use time::Instant;
 
 fn main() {
     let wrong = String::from("回答错误");
@@ -42,7 +43,7 @@ fn main() {
     }
     if *&range < 0 {
         println!("不为负！");
-        range = 0;
+        range = -range;
     }
 
     let mut total_time : i32;
@@ -60,6 +61,7 @@ fn main() {
     println!("按下Enter开始{}游戏", &mode_name);
     stdin().read_line(&mut String::new()).unwrap();
 
+    let all_start = Instant::now();
     let mut score = 0;
     let mut wrong_count = 0;
     let mut calc_time = 0;
@@ -69,6 +71,7 @@ fn main() {
         _ => method = mode,
     }
     while calc_time < *&total_time {
+        let start = Instant::now();
         let mut random : ThreadRng = rand::thread_rng();
         let a : i32 = random.gen_range((range / 10)..=range);
         let b : i32 = random.gen_range((range / 10)..=range);
@@ -89,23 +92,26 @@ fn main() {
             &2 => method_char = '*',
             _ => method_char = '+',
         }
-        println!("{}{}{}=?", a, method_char, b);
+        println!("第{}题，{}{}{}=?", *&calc_time + 1, a, method_char, b);
         let mut buffer = String::new();
         stdin().read_line(&mut buffer)
             .unwrap();
         let player_result : i32 = buffer.trim().parse()
             .unwrap_or(0);
+        let end = Instant::now();
         if player_result == result {
             score += 1;
-            println!("恭喜你回答正确！");
+            println!("恭喜你回答正确！耗时{}。", end - start);
         } else {
             wrong_count += 1;
-            println!("{}", wrong);
+            println!("{}，耗时{}", wrong, end - start);
         }
         calc_time += 1;
     }
+    let all_end = Instant::now();
 
-    println!("{}游戏已完成！共{}局，得分：{}，错误：{}", mode_name, total_time, score, wrong_count);
+    println!("{}游戏已完成！共{}局，共耗时{}，得分：{}，错误：{}",
+             mode_name, total_time, all_end - all_start, score, wrong_count);
     println!("按下Enter退出游戏");
     stdin().read_line(&mut String::new()).unwrap();
 }
